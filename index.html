@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Serwis MERCO SK</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 
 <style>
   :root {
@@ -197,31 +196,31 @@
     <nav class="nav">
       <div class="nav-section">Widoki</div>
       <button class="nav-btn active" onclick="setView('all')" id="nav-all">
-        <i class="ti ti-list" aria-hidden="true"></i> Wszystkie zgłoszenia
+        ☰ Wszystkie zgłoszenia
         <span class="nav-count" id="cnt-all">0</span>
       </button>
       <button class="nav-btn" onclick="setView('open')" id="nav-open">
-        <i class="ti ti-clock" aria-hidden="true"></i> Otwarte
+        ○ Otwarte
         <span class="nav-count" id="cnt-open">0</span>
       </button>
       <button class="nav-btn" onclick="setView('progress')" id="nav-progress">
-        <i class="ti ti-loader" aria-hidden="true"></i> W trakcie
+        ◑ W trakcie
         <span class="nav-count" id="cnt-progress">0</span>
       </button>
       <button class="nav-btn" onclick="setView('closed')" id="nav-closed">
-        <i class="ti ti-circle-check" aria-hidden="true"></i> Zamknięte
+        ✓ Zamknięte
         <span class="nav-count" id="cnt-closed">0</span>
       </button>
       <div class="nav-section">Baza wiedzy</div>
       <button class="nav-btn" onclick="setView('kb')">
-        <i class="ti ti-bulb" aria-hidden="true"></i> Rozwiązania
+        💡 Rozwiązania
       </button>
     </nav>
     <div class="sidebar-footer">
       <div class="user-chip">
         <div class="user-avatar" id="user-avatar">?</div>
         <div class="user-email" id="user-email-display">—</div>
-        <button class="logout-btn" onclick="handleLogout()" title="Wyloguj"><i class="ti ti-logout-2"></i></button>
+        <button class="logout-btn" onclick="handleLogout()" title="Wyloguj">⏻</button>
       </div>
     </div>
   </aside>
@@ -233,7 +232,7 @@
     <div id="view-list">
       <div class="page-header">
         <h1 class="page-title" id="view-title">Wszystkie zgłoszenia</h1>
-        <button class="btn btn-primary" onclick="openModal()"><i class="ti ti-plus" aria-hidden="true"></i> Nowe zgłoszenie</button>
+        <button class="btn btn-primary" onclick="openModal()">+ Nowe zgłoszenie</button>
       </div>
 
       <div class="stats">
@@ -243,7 +242,7 @@
       </div>
 
       <div class="search-bar">
-        <i class="ti ti-search" aria-hidden="true"></i>
+        🔍
         <input type="text" placeholder="Szukaj po tytule, opisie lub tagu…" id="search-input" oninput="renderList()">
       </div>
 
@@ -253,10 +252,10 @@
     <!-- VIEW: DETAIL -->
     <div id="view-detail" class="view-hidden">
       <div class="page-header">
-        <button class="btn" onclick="backToList()"><i class="ti ti-arrow-left" aria-hidden="true"></i> Wróć</button>
+        <button class="btn" onclick="backToList()">← Wróć</button>
         <div style="display:flex;gap:8px">
-          <button class="btn" onclick="editCurrent()"><i class="ti ti-edit" aria-hidden="true"></i> Edytuj</button>
-          <button class="btn" onclick="deleteCurrent()" style="color:var(--danger-text)"><i class="ti ti-trash" aria-hidden="true"></i> Usuń</button>
+          <button class="btn" onclick="editCurrent()">✎ Edytuj</button>
+          <button class="btn" onclick="deleteCurrent()" style="color:var(--danger-text)">🗑 Usuń</button>
         </div>
       </div>
       <div class="detail" id="detail-content"></div>
@@ -268,7 +267,7 @@
         <h1 class="page-title">Baza wiedzy</h1>
       </div>
       <div class="search-bar">
-        <i class="ti ti-search" aria-hidden="true"></i>
+        🔍
         <input type="text" placeholder="Szukaj rozwiązań…" id="kb-search" oninput="renderKB()">
       </div>
       <div id="kb-list" class="ticket-list"></div>
@@ -282,7 +281,7 @@
   <div class="modal">
     <div class="modal-header">
       <span class="modal-title" id="modal-title">Nowe zgłoszenie</span>
-      <button class="close-btn" onclick="closeModal()"><i class="ti ti-x"></i></button>
+      <button class="close-btn" onclick="closeModal()">✕</button>
     </div>
 
     <div class="form-error" id="form-error"></div>
@@ -336,7 +335,7 @@
 
     <div class="modal-footer">
       <button class="btn" onclick="closeModal()">Anuluj</button>
-      <button class="btn btn-primary" id="save-btn" onclick="saveTicket()"><i class="ti ti-check" aria-hidden="true"></i> Zapisz</button>
+      <button class="btn btn-primary" id="save-btn" onclick="saveTicket()">✓ Zapisz</button>
     </div>
   </div>
 </div>
@@ -367,7 +366,7 @@ async function loadSupabase() {
   return new Promise((resolve) => {
     if(window.supabase) { resolve(true); return; }
     const s = document.createElement('script');
-    s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
+    s.src = 'https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js';
     s.onload = () => resolve(true);
     s.onerror = () => resolve(false);
     setTimeout(() => resolve(false), 5000);
@@ -481,9 +480,9 @@ async function loadTickets() {
 }
 
 function statusLabel(s) {
-  if(s==='open') return '<span class="badge badge-open"><i class="ti ti-clock" style="font-size:12px"></i> Otwarte</span>';
-  if(s==='progress') return '<span class="badge badge-progress"><i class="ti ti-loader" style="font-size:12px"></i> W trakcie</span>';
-  return '<span class="badge badge-closed"><i class="ti ti-circle-check" style="font-size:12px"></i> Zamknięte</span>';
+  if(s==='open') return '<span class="badge badge-open">• Otwarte</span>';
+  if(s==='progress') return '<span class="badge badge-progress">• W trakcie</span>';
+  return '<span class="badge badge-closed">• Zamknięte</span>';
 }
 
 function fmtDate(iso) {
@@ -544,7 +543,7 @@ function renderList() {
   const el = document.getElementById('ticket-list');
   updateCounts();
   if(!list.length) {
-    el.innerHTML = '<div class="empty"><i class="ti ti-mood-empty"></i><p>Brak zgłoszeń w tym widoku</p></div>';
+    el.innerHTML = '<div class="empty">😐<p>Brak zgłoszeń w tym widoku</p></div>';
     return;
   }
   el.innerHTML = list.map(t => {
@@ -578,7 +577,7 @@ function renderKB() {
   );
   const el = document.getElementById('kb-list');
   if(!list.length) {
-    el.innerHTML = '<div class="empty"><i class="ti ti-bulb"></i><p>Brak zapisanych rozwiązań</p></div>';
+    el.innerHTML = '<div class="empty">•<p>Brak zapisanych rozwiązań</p></div>';
     return;
   }
   el.innerHTML = list.map(t => {
@@ -629,7 +628,7 @@ function openDetail(id) {
       </div>
       ${statusLabel(t.status)}
     </div>
-    ${(t.reporter_name || t.reporter_email) ? `<div style="font-size:13px;color:var(--text2);margin-bottom:1rem"><i class="ti ti-user" style="font-size:14px;vertical-align:-2px"></i> ${esc(t.reporter_name || t.reporter_email)}</div>` : ''}
+    ${(t.reporter_name || t.reporter_email) ? `<div style="font-size:13px;color:var(--text2);margin-bottom:1rem">👤 ${esc(t.reporter_name || t.reporter_email)}</div>` : ''}
     <div class="detail-section">
       <div class="detail-label">Opis problemu</div>
       <div class="detail-text">${esc(t.desc_text||'—')}</div>
@@ -639,10 +638,10 @@ function openDetail(id) {
       <div class="detail-text">${esc(t.actions)}</div>
     </div>` : ''}
     <div class="detail-section">
-      <div class="detail-label" style="color:var(--success-text)"><i class="ti ti-bulb" style="font-size:14px;vertical-align:-2px"></i> Rozwiązanie</div>
+      <div class="detail-label" style="color:var(--success-text)">💡 Rozwiązanie</div>
       <textarea class="form-input" id="solution-edit" rows="4" placeholder="Wpisz rozwiązanie, gdy będzie znane…" style="border-color:var(--border2)">${esc(t.solution||'')}</textarea>
       <div style="display:flex;justify-content:flex-end;margin-top:6px">
-        <button class="btn btn-primary" onclick="saveSolution('${t.id}')" style="padding:6px 12px;font-size:13px"><i class="ti ti-check" style="font-size:14px"></i> Zapisz rozwiązanie</button>
+        <button class="btn btn-primary" onclick="saveSolution('${t.id}')" style="padding:6px 12px;font-size:13px">✓ Zapisz rozwiązanie</button>
       </div>
     </div>
     ${tags.length ? `<div class="detail-section">
@@ -650,9 +649,9 @@ function openDetail(id) {
       <div class="tags-list">${tags.map(tg=>`<span class="tag">${esc(tg)}</span>`).join('')}</div>
     </div>` : ''}
     <div class="detail-actions">
-      ${t.status!=='closed' ? `<button class="btn" onclick="changeStatus('${t.id}','closed')"><i class="ti ti-circle-check"></i> Zamknij</button>` : ''}
-      ${t.status==='open' ? `<button class="btn" onclick="changeStatus('${t.id}','progress')"><i class="ti ti-loader"></i> W trakcie</button>` : ''}
-      ${t.status==='closed' ? `<button class="btn" onclick="changeStatus('${t.id}','open')"><i class="ti ti-refresh"></i> Otwórz ponownie</button>` : ''}
+      ${t.status!=='closed' ? `<button class="btn" onclick="changeStatus('${t.id}','closed')">✓ Zamknij</button>` : ''}
+      ${t.status==='open' ? `<button class="btn" onclick="changeStatus('${t.id}','progress')">◑ W trakcie</button>` : ''}
+      ${t.status==='closed' ? `<button class="btn" onclick="changeStatus('${t.id}','open')">↺ Otwórz ponownie</button>` : ''}
     </div>`;
 }
 
@@ -675,7 +674,7 @@ async function saveSolution(id) {
   const btn = event.target.closest('button');
   if(btn) {
     const original = btn.innerHTML;
-    btn.innerHTML = '<i class="ti ti-check" style="font-size:14px"></i> Zapisano';
+    btn.innerHTML = '✓ Zapisano';
     setTimeout(() => { btn.innerHTML = original; }, 1200);
   }
 }
@@ -758,7 +757,7 @@ async function saveTicket() {
   if(editingId) {
     const { error } = await sb.from('tickets').update(payload).eq('id', editingId);
     saveBtn.disabled = false;
-    saveBtn.innerHTML = '<i class="ti ti-check" aria-hidden="true"></i> Zapisz';
+    saveBtn.innerHTML = '✓ Zapisz';
     if (error) { errorEl.textContent = 'Błąd zapisu: ' + error.message; errorEl.style.display = 'block'; return; }
     Object.assign(tickets.find(x=>x.id===editingId), payload);
     closeModal();
@@ -768,7 +767,7 @@ async function saveTicket() {
     payload.reporter_name = currentUser ? currentUser.email : null;
     const { data, error } = await sb.from('tickets').insert(payload).select().single();
     saveBtn.disabled = false;
-    saveBtn.innerHTML = '<i class="ti ti-check" aria-hidden="true"></i> Zapisz';
+    saveBtn.innerHTML = '✓ Zapisz';
     if (error) { errorEl.textContent = 'Błąd zapisu: ' + error.message; errorEl.style.display = 'block'; return; }
     tickets.unshift(data);
     closeModal();
