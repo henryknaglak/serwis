@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Serwis MERCO SK</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
 <style>
   :root {
     --bg: #f5f4f1;
@@ -347,14 +347,7 @@
 // ============================================
 const SUPABASE_URL = 'https://hrlxmttcqvrceunqjlco.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_2CMqqr18QEOBCh5UztiPXQ_69cg-eSY';
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-  auth: {
-    persistSession: true,
-    storage: window.localStorage,
-    autoRefreshToken: true,
-    detectSessionInUrl: false
-  }
-});
+// sb initialized dynamically in initAuth via window._sb
 
 const MODULES = {
   izzyHotel: ['Konferencje', 'Spa', 'Housekeeping', 'Channel manager/Profit', 'Zamki hotelowe', 'Integracje'],
@@ -370,15 +363,36 @@ let currentUser = null;
 // ============================================
 // AUTH
 // ============================================
+async function loadSupabase() {
+  return new Promise((resolve) => {
+    if(window.supabase) { resolve(true); return; }
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
+    s.onload = () => resolve(true);
+    s.onerror = () => resolve(false);
+    setTimeout(() => resolve(false), 5000);
+    document.head.appendChild(s);
+  });
+}
+
 async function initAuth() {
-  // Pokazuj ekran logowania od razu — nie czekaj na Supabase
+  // Pokaż ekran logowania natychmiast
   document.getElementById('boot-loading').classList.add('view-hidden');
   showLogin();
 
-  // Próba przywrócenia sesji w tle (max 4 sekundy)
+  // Załaduj Supabase w tle
+  const loaded = await loadSupabase();
+  if (!loaded) { console.warn('Supabase CDN failed to load'); return; }
+
+  // Reinitializuj klienta po załadowaniu
+  window._sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: { persistSession: true, storage: window.localStorage, autoRefreshToken: true, detectSessionInUrl: false }
+  });
+
+  // Próba przywrócenia sesji
   try {
     const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 4000));
-    const { data: { session } } = await Promise.race([sb.auth.getSession(), timeout]);
+    const { data: { session } } = await Promise.race([window._sb.auth.getSession(), timeout]);
     if (session && !currentUser) {
       currentUser = session.user;
       await showApp();
@@ -387,7 +401,7 @@ async function initAuth() {
     console.warn('Session restore failed:', e.message);
   }
 
-  sb.auth.onAuthStateChange((event, session) => {
+  window._sb.auth.onAuthStateChange((event, session) => {
     if (event === 'SIGNED_IN' && session) {
       currentUser = session.user;
       showApp();
@@ -428,7 +442,7 @@ async function handleLogin() {
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span> Logowanie…';
 
-  const { error } = await sb.auth.signInWithPassword({ email, password });
+  const { error } = await (window._sb || sb).auth.signInWithPassword({ email, password });
 
   btn.disabled = false;
   btn.innerHTML = 'Zaloguj się';
@@ -440,7 +454,7 @@ async function handleLogin() {
 }
 
 async function handleLogout() {
-  await sb.auth.signOut();
+  await (window._sb || sb).auth.signOut();
 }
 
 // Allow Enter key to submit login
@@ -454,7 +468,7 @@ document.addEventListener('keydown', (e) => {
 // DATA LAYER (Supabase)
 // ============================================
 async function loadTickets() {
-  const { data, error } = await sb.from('tickets').select('*').order('created_at', { ascending: false });
+  const { data, error } = await (window._sb || sb).from('tickets').select('*').order('created_at', { ascending: false });
   if (error) {
     console.error('Błąd ładowania zgłoszeń:', error);
     alert('Nie udało się załadować zgłoszeń: ' + error.message);
@@ -642,7 +656,7 @@ function openDetail(id) {
 }
 
 async function changeStatus(id, status) {
-  const { error } = await sb.from('tickets').update({ status }).eq('id', id);
+  const { error } = await (window._sb || sb).from('tickets').update({ status }).eq('id', id);
   if (error) { alert('Błąd zapisu statusu: ' + error.message); return; }
   const t = tickets.find(x=>x.id===id);
   if(t) t.status = status;
@@ -652,7 +666,7 @@ async function changeStatus(id, status) {
 
 async function saveSolution(id) {
   const value = document.getElementById('solution-edit').value.trim();
-  const { error } = await sb.from('tickets').update({ solution: value }).eq('id', id);
+  const { error } = await (window._sb || sb).from('tickets').update({ solution: value }).eq('id', id);
   if (error) { alert('Błąd zapisu rozwiązania: ' + error.message); return; }
   const t = tickets.find(x=>x.id===id);
   if(t) t.solution = value;
@@ -695,7 +709,7 @@ function editCurrent() {
 
 async function deleteCurrent() {
   if(!confirm('Usunąć to zgłoszenie?')) return;
-  const { error } = await sb.from('tickets').delete().eq('id', selectedId);
+  const { error } = await (window._sb || sb).from('tickets').delete().eq('id', selectedId);
   if (error) { alert('Błąd usuwania: ' + error.message); return; }
   tickets = tickets.filter(x=>x.id!==selectedId);
   backToList();
@@ -741,7 +755,7 @@ async function saveTicket() {
   };
 
   if(editingId) {
-    const { error } = await sb.from('tickets').update(payload).eq('id', editingId);
+    const { error } = await (window._sb || sb).from('tickets').update(payload).eq('id', editingId);
     saveBtn.disabled = false;
     saveBtn.innerHTML = '<i class="ti ti-check" aria-hidden="true"></i> Zapisz';
     if (error) { errorEl.textContent = 'Błąd zapisu: ' + error.message; errorEl.style.display = 'block'; return; }
@@ -751,7 +765,7 @@ async function saveTicket() {
   } else {
     payload.reporter_email = currentUser ? currentUser.email : null;
     payload.reporter_name = currentUser ? currentUser.email : null;
-    const { data, error } = await sb.from('tickets').insert(payload).select().single();
+    const { data, error } = await (window._sb || sb).from('tickets').insert(payload).select().single();
     saveBtn.disabled = false;
     saveBtn.innerHTML = '<i class="ti ti-check" aria-hidden="true"></i> Zapisz';
     if (error) { errorEl.textContent = 'Błąd zapisu: ' + error.message; errorEl.style.display = 'block'; return; }
