@@ -179,7 +179,7 @@
   <aside class="sidebar">
     <div class="logo">
       <div class="logo-title">Serwis MERCO SK</div>
-      <div class="logo-sub">izzyHotel · izzyRest</div>
+      <div class="logo-sub">izzyHotel · izzyRest</div><div style="margin-top:6px"><span id="role-badge" style="font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500;background:var(--surface2);color:var(--text3)">viewer</span></div>
     </div>
     <nav class="nav">
       <div class="nav-section">Widoki</div>
@@ -213,7 +213,7 @@
     <div id="view-list">
       <div class="page-header">
         <h1 class="page-title" id="view-title">Wszystkie zgłoszenia</h1>
-        <button class="btn btn-primary" onclick="openModal()"><i class="ti ti-plus" aria-hidden="true"></i> Nowe zgłoszenie</button>
+        <button class="btn btn-primary" class="role-editor" onclick="openModal()"><i class="ti ti-plus" aria-hidden="true"></i> Nowe zgłoszenie</button>
       </div>
 
       <div class="stats">
@@ -235,8 +235,8 @@
       <div class="page-header">
         <button class="btn" onclick="backToList()"><i class="ti ti-arrow-left" aria-hidden="true"></i> Wróć</button>
         <div style="display:flex;gap:8px">
-          <button class="btn" onclick="editCurrent()"><i class="ti ti-edit" aria-hidden="true"></i> Edytuj</button>
-          <button class="btn" onclick="deleteCurrent()" style="color:var(--danger-text)"><i class="ti ti-trash" aria-hidden="true"></i> Usuń</button>
+          <button class="btn" class="role-editor" onclick="editCurrent()"><i class="ti ti-edit" aria-hidden="true"></i> Edytuj</button>
+          <button class="btn" class="role-admin" onclick="deleteCurrent()" style="color:var(--danger-text)"><i class="ti ti-trash" aria-hidden="true"></i> Usuń</button>
         </div>
       </div>
       <div class="detail" id="detail-content"></div>
@@ -333,6 +333,15 @@ const MODULES = {
 };
 let tickets = [];
 let currentView = 'all';
+let userRole = 'viewer';
+function canEdit() { return userRole === 'admin' || userRole === 'editor'; }
+function isAdmin() { return userRole === 'admin'; }
+function applyRoleUI() {
+  document.querySelectorAll('.role-editor').forEach(el => el.style.display = canEdit() ? '' : 'none');
+  document.querySelectorAll('.role-admin').forEach(el => el.style.display = isAdmin() ? '' : 'none');
+  const b = document.getElementById('role-badge');
+  if(b){b.textContent=userRole;b.style.background=userRole==='admin'?'var(--danger-bg)':userRole==='editor'?'var(--accent-bg)':'var(--surface2)';b.style.color=userRole==='admin'?'var(--danger-text)':userRole==='editor'?'var(--accent-text)':'var(--text3)';}
+}
 let currentModuleFilter = '';
 let selectedId = null;
 let editingId = null;
@@ -353,9 +362,12 @@ async function handleLogin() {
   if(error) { errEl.textContent='Nieprawidłowy e-mail lub hasło.'; errEl.style.display='block'; return; }
   currentUser = data.user;
   document.getElementById('login-screen').style.display = 'none';
+  const { data: rd } = await sb.from('user_roles').select('role').eq('user_id', data.user.id).single();
+  userRole = rd?.role || 'viewer';
   await loadTickets();
   renderList();
   updateCounts();
+  applyRoleUI();
 }
 
 document.addEventListener('keydown', e => {
